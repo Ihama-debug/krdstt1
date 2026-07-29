@@ -28,8 +28,8 @@ export default async function handler(req, res) {
             // Removed generationConfig to avoid 400 Bad Request errors
         };
 
-        // 3. CORRECT MODEL NAME: gemini-2.5-flash
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        // 3. CORRECT MODEL NAME: gemini-3.1-pro-preview
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
         
         let response;
         let data;
