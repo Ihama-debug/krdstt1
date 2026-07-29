@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorani Music STT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+    --primary: #6366F1; /* Slightly lighter for better contrast in dark mode */
+    --primary-hover: #818CF8;
+    --bg-color: #111827; /* Dark background */
+    --card-bg: #1F2937; /* Darker card background */
+    --text-main: #F9FAFB; /* Off-white text */
+    --text-muted: #9CA3AF; /* Light gray text */
+    --border-color: #374151; /* Dark border */
+    --warning-color: #F87171;
+    --warning-bg: rgba(239, 68, 68, 0.1);
+    --success: #34D399;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+#output { 
+    padding: 1.5rem; 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px;
+    min-height: 120px; 
+    background: rgba(0, 0, 0, 0.2); 
+    text-align: right; 
+    line-height: 1.6;
+    color: var(--text-main);
+    font-size: 1rem;
+    white-space: pre-wrap; /* Added this so timestamps and line breaks render correctly */
+}
+
+body { 
+    font-family: 'Noto Sans Arabic', system-ui, -apple-system, sans-serif; 
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.app-container {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    padding: 3rem 2rem;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.subtitle {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+.warning-box {
+    background-color: var(--warning-bg);
+    color: var(--warning-color);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.upload-area {
+    border: 2px dashed var(--border-color);
+    padding: 2.5rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.upload-area:hover {
+    border-color: var(--primary);
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-weight: 500;
+    color: var(--text-main);
+    transition: 0.2s;
+    margin-bottom: 15px;
+}
+
+.custom-file-upload:hover {
+    background-color: var(--border-color);
+}
+
+.file-name-display {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+    min-height: 20px;
+}
+
+button { 
+    padding: 12px 24px; 
+    font-size: 1rem; 
+    font-weight: 600;
+    cursor: pointer; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    width: 100%;
+    transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background: var(--primary-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+#status {
+    margin: 1.5rem 0 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+#output { 
+    padding: 1.5rem; 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px;
+    min-height: 120px; 
+    background: rgba(0, 0, 0, 0.2); 
+    text-align: right; 
+    line-height: 1.6;
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+    </style>
+</head>
+<body>
+    
+    <div class="app-container">
+
+    <!-- END HEADER SECTION -->
+
+    <h2>سەوت بۆ دەق</h2>
+    <p class="subtitle">Sorani STT</p>
+    
+        
+        <div class="warning-box">
+            تێبینی: قەبارەی فایل نابێت لە ٧ مێگابایت زیاتر بێت 
+            <br>
+            <small>(Maximum 7MB limit)</small>
+        </div>
+        
+<div class="upload-area">
+            <!-- New Flex Container to keep items side-by-side -->
+            <div class="upload-controls" style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 15px;">
+                <label for="fileInput" class="custom-file-upload" style="margin-bottom: 0;">
+                    + هەڵبژاردنی فایل (Choose File)
+                </label>
+                <input type="file" id="fileInput" accept="audio/*">
+                
+                <!-- New Subtitle Duration Input -->
+                <input type="number" id="blockDuration" placeholder="Seconds (e.g. 2)" min="1" max="10" 
+                    style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); width: 140px; font-family: inherit;">
+            </div>
+            
+            <div class="file-name-display" id="fileNameDisplay">هیچ فایلێک هەڵنەبژێردراوە</div>
+            
+            <button id="uploadBtn">⬆️ بارکردن و وەرگێڕان (Upload & Transcribe)</button>
+        </div>
+        
+        <div id="status">ئامادەیە (Ready)</div>
+        <div id="output">تێکستەکە لێرە دەردەکەوێت...</div>
+
+        <!-- Add this Download Button -->
+        <button id="downloadBtn" style="margin-top: 15px; display: none; background: #34D399;">💾 دابەزاندنی فایل (Download SRT)</button>
+         </div>
+
+    <script>
+    const blockDuration = document.getElementById('blockDuration');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    const downloadBtn = document.getElementById('downloadBtn'); // Declared at top
+
+    // Update file name display when a file is selected
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            fileNameDisplay.textContent = e.target.files[0].name;
+        } else {
+            fileNameDisplay.textContent = "هیچ فایلێک هەڵنەبژێردراوە";
+        }
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            return alert('Please select an audio file first.');
+        }
+        
+        // Hide download button when starting a new upload
+        downloadBtn.style.display = "none";
+        
+        if (file.size > 7340032) {
+            return alert('Error: File is too large. Please upload an MP3 smaller than 7MB.');
+        }
+        
+        status.textContent = "Uploading and processing... This may take a minute.";
+        status.classList.add('pulse');
+        output.textContent = "";
+        uploadBtn.disabled = true;
+        uploadBtn.style.opacity = "0.7";
+        
+        // Read file and convert to Base64
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = async () => {
+            const base64Audio = reader.result.split(',')[1];
+            const mimeType = file.type || 'audio/mp3';
+            
+            try {
+                    const response = await fetch('/api/transcribe', {
+                     method: 'POST',
+                     headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify({ 
+                     audio: base64Audio,
+                     mimeType: mimeType,
+                     filename: file.name,
+                      duration: blockDuration.value || "1 to 2"
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    output.textContent = data.text;
+                    status.style.color = "var(--success)";
+                    downloadBtn.style.display = "block"; // Show button on success
+                } else {
+                    output.textContent = "API Error: " + (data.error || "Unknown error");
+                    status.style.color = "var(--warning-color)";
+                }
+            } catch(e) {
+                console.error("Full error:", e);
+                output.textContent = "Connection Error: " + e.message + " (Check F12 Developer Console)";
+                status.style.color = "var(--warning-color)";
+            } finally {
+                status.textContent = "تەواو (Finished)";
+                status.classList.remove('pulse');
+                uploadBtn.disabled = false;
+                uploadBtn.style.opacity = "1";
+                
+                // Reset status color after 3 seconds
+                setTimeout(() => {
+                    status.style.color = "var(--text-muted)";
+                }, 3000);
+            }
+        };
+    });
+
+    // Download SRT button click handler
+    downloadBtn.addEventListener('click', () => {
+        const textContent = output.textContent;
+        if (!textContent) return;
+
+        // Create a downloadable .srt file
+        const blob = new Blob([textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        // Name the file based on the uploaded audio
+        const originalName = fileInput.files[0]?.name.split('.')[0] || 'transcription';
+        a.href = url;
+        a.download = `${originalName}.srt`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+</script>
+</body>
+</html>
