@@ -178,6 +178,31 @@ button:disabled {
     50% { opacity: 1; }
     100% { opacity: 0.6; }
 }
+
+.translate-btn {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.translate-btn:hover {
+    background-color: #0056b3;
+}
+
+.arabic-box {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Arial', sans-serif; /* Arabic fonts render well on standard sans-serif */
+    font-size: 18px;
+}
     </style>
 </head>
 <body>
@@ -216,10 +241,15 @@ button:disabled {
         
         <div id="status">ئامادەیە (Ready)</div>
         <div id="output">تێکستەکە لێرە دەردەکەوێت...</div>
+         <button id="translateBtn" class="translate-btn">Translate to Arabic</button>
 
+<!-- This is where the Arabic translation will be displayed -->
+<div id="arabicOutput" class="arabic-box" dir="rtl" style="display: none;"></div>
         <!-- Add this Download Button -->
         <button id="downloadBtn" style="margin-top: 15px; display: none; background: #34D399;">💾 دابەزاندنی فایل (Download SRT)</button>
          </div>
+
+         
 
     <script>
     const blockDuration = document.getElementById('blockDuration');

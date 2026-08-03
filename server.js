@@ -39,6 +39,41 @@ app.post('/transcribe', async (req, res) => {
             }
         };
 
+        document.getElementById('translateBtn').addEventListener('click', async () => {
+    // Replace 'your-final-text-id' with the actual ID of the box holding your transcribed text
+    const kurdishTextElement = document.getElementById('your-final-text-id'); 
+    
+    // Check if it's an input/textarea (use .value) or a div/span (use .innerText)
+    const textToTranslate = kurdishTextElement.value || kurdishTextElement.innerText;
+    
+    const outputDiv = document.getElementById('arabicOutput');
+
+    // Make the output visible and show a loading message
+    outputDiv.style.display = 'block';
+    outputDiv.innerText = "جاری وەرگێڕانە... (Translating...)";
+
+    if (!textToTranslate.trim()) {
+        outputDiv.innerText = "No text to translate.";
+        return;
+    }
+
+    try {
+        // ckb = Central Kurdish (Sorani), ar = Arabic
+        const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=ckb|ar`;
+        
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (data.responseData && data.responseData.translatedText) {
+            outputDiv.innerText = data.responseData.translatedText;
+        } else {
+            outputDiv.innerText = "Translation failed. Please try again.";
+        }
+    } catch (error) {
+        console.error("Translation Error:", error);
+        outputDiv.innerText = "Error connecting to translation service.";
+    }
+});
         // ... (previous payload setup code remains exactly the same) ...
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
