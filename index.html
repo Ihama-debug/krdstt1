@@ -355,6 +355,44 @@ button:disabled {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     });
+
+    // --- Translation Button Logic ---
+    const translateBtn = document.getElementById('translateBtn');
+    const arabicOutputDiv = document.getElementById('arabicOutput');
+
+    translateBtn.addEventListener('click', async (event) => {
+        event.preventDefault(); // Prevents page reload
+        
+        // Grab the text from your existing output box
+        const kurdishTextElement = document.getElementById('output'); 
+        const textToTranslate = kurdishTextElement.innerText;
+
+        // Make the output visible and show a loading message
+        arabicOutputDiv.style.display = 'block';
+        arabicOutputDiv.innerText = "جاری وەرگێڕانە... (Translating...)";
+
+        // Check if there is actual text to translate, ignoring default placeholder
+        if (!textToTranslate.trim() || textToTranslate.includes("تێکستەکە لێرە دەردەکەوێت...")) {
+            arabicOutputDiv.innerText = "No text to translate yet.";
+            return;
+        }
+
+        try {
+            const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=ckb|ar`;
+            
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.responseData && data.responseData.translatedText) {
+                arabicOutputDiv.innerText = data.responseData.translatedText;
+            } else {
+                arabicOutputDiv.innerText = "Translation failed. Please try again.";
+            }
+        } catch (error) {
+            console.error("Translation Error:", error);
+            arabicOutputDiv.innerText = "Error connecting to translation service.";
+        }
+    });
 </script>
 </body>
 </html>
