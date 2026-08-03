@@ -39,7 +39,6 @@ app.post('/transcribe', async (req, res) => {
             }
         };
 
-
         // ... (previous payload setup code remains exactly the same) ...
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;

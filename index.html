@@ -178,31 +178,6 @@ button:disabled {
     50% { opacity: 1; }
     100% { opacity: 0.6; }
 }
-
-.translate-btn {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-.translate-btn:hover {
-    background-color: #0056b3;
-}
-
-.arabic-box {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-family: 'Arial', sans-serif; /* Arabic fonts render well on standard sans-serif */
-    font-size: 18px;
-}
     </style>
 </head>
 <body>
@@ -241,15 +216,10 @@ button:disabled {
         
         <div id="status">ئامادەیە (Ready)</div>
         <div id="output">تێکستەکە لێرە دەردەکەوێت...</div>
-         <button id="translateBtn" class="translate-btn">Translate to Arabic</button>
 
-<!-- This is where the Arabic translation will be displayed -->
-<div id="arabicOutput" class="arabic-box" dir="rtl" style="display: none;"></div>
         <!-- Add this Download Button -->
         <button id="downloadBtn" style="margin-top: 15px; display: none; background: #34D399;">💾 دابەزاندنی فایل (Download SRT)</button>
          </div>
-
-         
 
     <script>
     const blockDuration = document.getElementById('blockDuration');
@@ -354,44 +324,6 @@ button:disabled {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    });
-
-    // --- Translation Button Logic ---
-    const translateBtn = document.getElementById('translateBtn');
-    const arabicOutputDiv = document.getElementById('arabicOutput');
-
-    translateBtn.addEventListener('click', async (event) => {
-        event.preventDefault(); // Prevents page reload
-        
-        // Grab the text from your existing output box
-        const kurdishTextElement = document.getElementById('output'); 
-        const textToTranslate = kurdishTextElement.innerText;
-
-        // Make the output visible and show a loading message
-        arabicOutputDiv.style.display = 'block';
-        arabicOutputDiv.innerText = "جاری وەرگێڕانە... (Translating...)";
-
-        // Check if there is actual text to translate, ignoring default placeholder
-        if (!textToTranslate.trim() || textToTranslate.includes("تێکستەکە لێرە دەردەکەوێت...")) {
-            arabicOutputDiv.innerText = "No text to translate yet.";
-            return;
-        }
-
-        try {
-            const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=ckb|ar`;
-            
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-
-            if (data.responseData && data.responseData.translatedText) {
-                arabicOutputDiv.innerText = data.responseData.translatedText;
-            } else {
-                arabicOutputDiv.innerText = "Translation failed. Please try again.";
-            }
-        } catch (error) {
-            console.error("Translation Error:", error);
-            arabicOutputDiv.innerText = "Error connecting to translation service.";
-        }
     });
 </script>
 </body>
