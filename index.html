@@ -248,8 +248,8 @@ button:disabled {
         // Hide download button when starting a new upload
         downloadBtn.style.display = "none";
         
-        if (file.size > 7340032) {
-            return alert('Error: File is too large. Please upload an MP3 smaller than 7MB.');
+        if (file.size > 4700000) {
+            return alert('Error: File is too large. Please upload an MP3 smaller than 4.5MB.');
         }
         
         status.textContent = "Uploading and processing... This may take a minute.";

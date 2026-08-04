@@ -1,5 +1,13 @@
+// Add this configuration to override the default body parser limit
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '4.5mb', // 4.5MB is the absolute maximum for Vercel's free Hobby plan
+        },
+    },
+};
+
 export default async function handler(req, res) {
-    // 1. Vercel automatically parses the JSON body, so req.body is ready to use
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
