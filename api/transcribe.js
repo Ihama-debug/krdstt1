@@ -1,13 +1,14 @@
-// Add this configuration to override the default body parser limit
+// 1. Explicitly configure Vercel to allow the maximum Hobby plan payload size
 export const config = {
     api: {
         bodyParser: {
-            sizeLimit: '4.5mb', // 4.5MB is the absolute maximum for Vercel's free Hobby plan
+            sizeLimit: '4.5mb', 
         },
     },
 };
 
 export default async function handler(req, res) {
+    // Vercel automatically parses the JSON body, so req.body is ready to use
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
         // Safety check: Strip the data URI prefix if the frontend sent it by mistake
         const cleanAudio = audio.replace(/^data:audio\/\w+;base64,/, '');
         
-        // 2. The Payload (Without the problematic generationConfig)
+        // The Payload
         const payload = {
             contents: [{
                 parts: [
@@ -33,17 +34,16 @@ export default async function handler(req, res) {
                     }
                 ]
             }]
-            // Removed generationConfig to avoid 400 Bad Request errors
         };
 
-        // 3. CORRECT MODEL NAME: gemini-3.1-pro-preview
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        // 2. SWITCHED MODEL: Now using gemini-3.5-flash for much faster processing speeds to avoid Vercel timeouts
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
         
         let response;
         let data;
         const maxRetries = 2;
 
-        // 4. Exponential Backoff Loop
+        // Exponential Backoff Loop
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             response = await fetch(url, {
                 method: 'POST',
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
             return res.status(response.status).json({ error: data.error?.message || 'Gemini API Error' });
         }
 
-        // 5. Parse and return the text
+        // Parse and return the text
         let transcribedText = data.candidates[0].content.parts[0].text;
         transcribedText = transcribedText.replace(/^```(srt)?\n?|```$/gm, '').trim();
 
