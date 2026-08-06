@@ -18,8 +18,19 @@ export default async function handler(req, res) {
         const targetLanguage = body.language || 'Arabic';
         const duration = body.duration || '1 to 2';
         const priorities = body.priorities || { p1: true, p2: true, p3: true, p4: true };
-        const cleanAudio = (body.audio || '').replace(/^data:audio\/\w+;base64,/, '');
         const keepNames = body.keepNames || '';
+
+        let cleanAudio = '';
+
+        // NEW LOGIC: Download the audio from Vercel Blob URL and convert it to Base64 for Gemini
+        if (body.audioUrl) {
+            const fileRes = await fetch(body.audioUrl);
+            const arrayBuffer = await fileRes.arrayBuffer();
+            cleanAudio = Buffer.from(arrayBuffer).toString('base64');
+        } else {
+            // Fallback for old Base64 uploads
+            cleanAudio = (body.audio || '').replace(/^data:audio\/\w+;base64,/, '');
+        }
 
         let prioritiesText = '';
         let currentPriorityNum = 1;

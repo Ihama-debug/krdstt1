@@ -477,7 +477,10 @@
 
     </div> <!-- This properly closes the app-container at the very end -->
 
-    <script>
+    <script type="module">
+        // Import Vercel Blob client via esm.sh CDN for vanilla HTML
+        import { upload } from 'https://esm.sh/@vercel/blob/client';
+
         const blockDuration = document.getElementById('blockDuration');
         const languageSelect = document.getElementById('languageSelect');
         const uploadBtn = document.getElementById('uploadBtn');
@@ -510,69 +513,67 @@
             // Hide download button when starting a new upload
             downloadBtn.style.display = "none";
 
-            if (file.size > 4718592) { // 4.5MB in bytes
-                return alert('Error: File is too large. Please upload an MP3 smaller than 4.5MB.');
-            }
-
-            status.textContent = "Uploading and processing... This may take a minute.";
+            status.textContent = "Uploading to cloud storage... This may take a minute.";
             status.classList.add('pulse');
             output.textContent = "";
             uploadBtn.disabled = true;
             uploadBtn.style.opacity = "0.7";
 
-            // Read file and convert to Base64
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                const base64Audio = reader.result.split(',')[1];
-                const mimeType = file.type || 'audio/mp3';
+            try {
+                // 1. Upload directly from the browser to Vercel Blob
+                const blob = await upload(file.name, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                });
 
-                try {
-                    const response = await fetch('/api/transcribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            audio: base64Audio,
-                            mimeType: mimeType,
-                            filename: file.name,
-                            duration: blockDuration.value || "1 to 2",
-                            language: languageSelect.value,
-                            keepNames: keepNames.value,
-                            priorities: {
-                                p1: priority1.checked,
-                                p2: priority2.checked,
-                                p3: priority3.checked,
-                                p4: priority4.checked
-                            }
-                        })
-                    });
+                status.textContent = "Processing transcription with AI...";
+                console.log("File is now safely in the cloud at:", blob.url);
 
-                    const data = await response.json();
+                // 2. Send the new URL string to your transcription API logic
+                const response = await fetch('/api/transcribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        audioUrl: blob.url, // Sending URL instead of massive Base64
+                        mimeType: file.type || 'audio/mp3',
+                        filename: file.name,
+                        duration: blockDuration.value || "1 to 2",
+                        language: languageSelect.value,
+                        keepNames: keepNames.value,
+                        priorities: {
+                            p1: priority1.checked,
+                            p2: priority2.checked,
+                            p3: priority3.checked,
+                            p4: priority4.checked
+                        }
+                    })
+                });
 
-                    if (response.ok) {
-                        output.textContent = data.text;
-                        status.style.color = "var(--success)";
-                        downloadBtn.style.display = "block"; // Show button on success
-                    } else {
-                        output.textContent = "API Error: " + (data.error || "Unknown error");
-                        status.style.color = "var(--warning-color)";
-                    }
-                } catch (e) {
-                    console.error("Full error:", e);
-                    output.textContent = "Connection Error: " + e.message + " (Check F12 Developer Console)";
+                const data = await response.json();
+
+                if (response.ok) {
+                    output.textContent = data.text;
+                    status.style.color = "var(--success)";
+                    downloadBtn.style.display = "block"; // Show button on success
+                } else {
+                    output.textContent = "API Error: " + (data.error || "Unknown error");
                     status.style.color = "var(--warning-color)";
-                } finally {
-                    status.textContent = "تەواو (Finished)";
-                    status.classList.remove('pulse');
-                    uploadBtn.disabled = false;
-                    uploadBtn.style.opacity = "1";
-
-                    // Reset status color after 3 seconds
-                    setTimeout(() => {
-                        status.style.color = "var(--text-muted)";
-                    }, 3000);
                 }
-            };
+            } catch (e) {
+                console.error("Full error:", e);
+                output.textContent = "Connection Error: " + e.message + " (Check F12 Developer Console)";
+                status.style.color = "var(--warning-color)";
+            } finally {
+                status.textContent = "تەواو (Finished)";
+                status.classList.remove('pulse');
+                uploadBtn.disabled = false;
+                uploadBtn.style.opacity = "1";
+
+                // Reset status color after 3 seconds
+                setTimeout(() => {
+                    status.style.color = "var(--text-muted)";
+                }, 3000);
+            }
         });
 
         // Download SRT button click handler
@@ -580,12 +581,10 @@
             const textContent = output.textContent;
             if (!textContent) return;
 
-            // Create a downloadable .srt file
             const blob = new Blob([textContent], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
 
-            // Name the file based on the uploaded audio
             const originalName = fileInput.files[0]?.name.split('.')[0] || 'transcription';
             a.href = url;
             a.download = `${originalName}.srt`;
